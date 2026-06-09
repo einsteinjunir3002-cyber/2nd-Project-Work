@@ -1,7 +1,7 @@
 /* SMARTLEARN AI - APPLICATION REACTIVE ENGINE (COMPACTED) */
 const SYSTEM_PERMANENT_CONFIG = {
   provider: 'groq',
-  apiKey: 'YOUR_GROQ_API_KEY_HERE', // ⚠️ REPLACE THIS with your full Groq API key (starts with gsk_)!
+  apiKey: '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',
   model: 'llama-3.1-8b-instant'
 };
 const D = {
