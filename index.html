@@ -509,6 +509,11 @@
                 No key? <a href="https://aistudio.google.com/" target="_blank" style="color:var(--primary); text-decoration:underline;">Get Gemini key free</a> · <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--primary); text-decoration:underline;">OpenRouter</a>
               </p>
 
+              <!-- Export Config Button (Admin only) -->
+              <button type="button" id="btn-copy-config" class="btn btn-secondary" style="width:100%; font-size:0.68rem; height:28px; padding:0 8px; margin-bottom:8px; border-radius:var(--radius-sm); border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; background:rgba(255,255,255,0.05); color:var(--text-muted);" onmouseover="this.style.color='var(--text-main)';this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.color='var(--text-muted)';this.style.background='rgba(255,255,255,0.05)'" onclick="copyPermanentConfig()" title="Export current key and settings as a code block to paste in assets/js/app.js">
+                📋 Export Config to Code
+              </button>
+
               <!-- Offline Demo Mode Badge -->
               <div id="offline-demo-indicator" style="display:none; margin-bottom:8px; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.25); border-radius:8px; padding:6px 12px; align-items:center; gap:8px; color:#fbbf24; font-size:0.7rem; font-weight:700; user-select:none;">
                 <span class="pulse-dot" style="width:6px; height:6px; background:#fbbf24; border-radius:50%; display:inline-block; box-shadow:0 0 6px #fbbf24; animation:offline-pulse-animation 1.5s infinite;"></span>

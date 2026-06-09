@@ -1176,6 +1176,21 @@ function updateAiSettingsVisibility() {
     container.style.display = (appState.role === 'admin') ? 'block' : 'none';
   }
 }
+function copyPermanentConfig() {
+  const provider = localStorage.getItem('smartlearn_ai_provider') || 'groq';
+  const key      = localStorage.getItem('smartlearn_ai_key') || 'YOUR_GROQ_API_KEY_HERE';
+  const model    = localStorage.getItem('smartlearn_ai_model') || 'llama-3.1-8b-instant';
+  const snippet = `const SYSTEM_PERMANENT_CONFIG = {
+  provider: '${provider}',
+  apiKey: '${key}',
+  model: '${model}'
+};`;
+  navigator.clipboard.writeText(snippet).then(() => {
+    showToastNotification('Config copied! Paste at the top of assets/js/app.js');
+  }).catch(() => {
+    alert("Exported Config (copy and paste at the top of assets/js/app.js):\n\n" + snippet);
+  });
+}
 function toggleTheme() {
   const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.body.setAttribute('data-theme', theme); appState.theme = theme; localStorage.setItem('smartlearn_theme', theme); document.querySelectorAll('.theme-toggle').forEach(btn => btn.innerHTML = theme === 'dark' ? '☀️' : '🌙'); }
 function showToastNotification(msg) {
