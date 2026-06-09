@@ -459,7 +459,7 @@
             <button class="ai-mode-btn" data-mode="tutor" onclick="setAiMode('tutor')">💻 Programming Tutor</button>
 
             <!-- AI API Settings Panel -->
-            <div class="ai-api-settings" style="margin-top: auto; padding-top: 16px; border-top: 1px dashed var(--border);">
+            <div id="ai-api-settings-container" class="ai-api-settings" style="margin-top: auto; padding-top: 16px; border-top: 1px dashed var(--border);">
               <h4 style="font-size:0.85rem; color:var(--text-muted); margin-bottom:8px; display:flex; align-items:center; gap:6px;">⚙️ AI Provider</h4>
 
               <!-- Provider Selector -->
@@ -1000,8 +1000,7 @@
           <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-light); margin-bottom:6px;">Select Role</label>
           <div style="display:flex; gap:8px;">
             <button type="button" id="role-student-btn" style="flex:1; padding:8px; font-size:0.75rem; font-weight:700; border-radius:8px; background:rgba(124,58,237,0.1); border:1px solid var(--primary); color:var(--primary); cursor:pointer;" onclick="setSignupRole('student')">Student</button>
-            <button type="button" id="role-lecturer-btn" style="flex:1; padding:8px; font-size:0.75rem; font-weight:700; border-radius:8px; background:transparent; border:1px solid rgba(255,255,255,0.08); color:var(--text-muted); cursor:pointer;" onclick="setSignupRole('lecturer')">Lecturer</button>
-            <button type="button" id="role-admin-btn" style="flex:1; padding:8px; font-size:0.75rem; font-weight:700; border-radius:8px; background:transparent; border:1px solid rgba(255,255,255,0.08); color:var(--text-muted); cursor:pointer;" onclick="setSignupRole('admin')">Admin</button></div></div>
+            <button type="button" id="role-lecturer-btn" style="flex:1; padding:8px; font-size:0.75rem; font-weight:700; border-radius:8px; background:transparent; border:1px solid rgba(255,255,255,0.08); color:var(--text-muted); cursor:pointer;" onclick="setSignupRole('lecturer')">Lecturer</button></div></div>
 
         <!-- Student-only metadata inputs -->
         <div id="signup-student-fields" style="display:flex; gap:8px; margin-bottom:16px;">

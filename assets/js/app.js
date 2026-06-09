@@ -1,4 +1,9 @@
 /* SMARTLEARN AI - APPLICATION REACTIVE ENGINE (COMPACTED) */
+const SYSTEM_PERMANENT_CONFIG = {
+  provider: 'openrouter',
+  apiKey: 'sk-or-v1-7e66ff873bdcb265ec831a...', // ⚠️ REPLACE THIS with your full 72-character OpenRouter key!
+  model: 'meta-llama/llama-3.1-8b-instruct:free'
+};
 const D = {
   get: id => document.getElementById(id),
   val: (id, v) => { const el = document.getElementById(id); if (el) { if (v !== undefined) el.value = v; return el.value; } },
@@ -253,7 +258,9 @@ function setUserRole(role) {
       </select>` : ''; }
   if (role === 'admin') setAdminPrototypeView('student');
   else {
-    document.querySelectorAll('.student-only').forEach(el => el.style.display = (role === 'student' ? 'flex' : 'none')); document.querySelectorAll('.lecturer-only').forEach(el => el.style.display = (role === 'lecturer' ? 'flex' : 'none')); switchTab(role, role === 'student' ? 'student-dashboard' : 'lecturer-dashboard'); } }
+    document.querySelectorAll('.student-only').forEach(el => el.style.display = (role === 'student' ? 'flex' : 'none')); document.querySelectorAll('.lecturer-only').forEach(el => el.style.display = (role === 'lecturer' ? 'flex' : 'none')); switchTab(role, role === 'student' ? 'student-dashboard' : 'lecturer-dashboard'); }
+  updateAiSettingsVisibility();
+}
 const setAdminPrototypeView = view => {
   const isStd = view === 'student'; document.querySelectorAll('.student-only').forEach(el => el.style.display = isStd ? 'flex' : 'none'); document.querySelectorAll('.lecturer-only').forEach(el => el.style.display = isStd ? 'none' : 'flex'); switchTab(view, isStd ? 'student-dashboard' : 'lecturer-dashboard');
 },
@@ -515,8 +522,24 @@ async function executeClientAiRequest(prompt, systemInstruction, mode = 'study')
       const data = await res.json(); if (res.ok && data.response) return data.response;
     } catch(err) {}
   }
-  const provider = localStorage.getItem('smartlearn_ai_provider') || 'keyless';
-  const apiKey   = localStorage.getItem('smartlearn_ai_key') || '';
+  let provider = localStorage.getItem('smartlearn_ai_provider') || 'keyless';
+  let apiKey   = localStorage.getItem('smartlearn_ai_key') || '';
+  let model    = localStorage.getItem('smartlearn_ai_model') || '';
+
+  // Enforce permanent API config for non-admins (students and lecturers)
+  if (appState.role !== 'admin') {
+    if (SYSTEM_PERMANENT_CONFIG.apiKey && SYSTEM_PERMANENT_CONFIG.apiKey !== 'sk-or-v1-7e66ff873bdcb265ec831a...') {
+      provider = SYSTEM_PERMANENT_CONFIG.provider;
+      apiKey   = SYSTEM_PERMANENT_CONFIG.apiKey;
+      model    = SYSTEM_PERMANENT_CONFIG.model;
+    } else {
+      // If no valid permanent key is set in the code, fallback to keyless mode for security
+      provider = 'keyless';
+      apiKey   = '';
+      model    = '';
+    }
+  }
+
   const sysText  = systemInstruction || getSystemPrompt(mode);
 
   // ── Gemini ──────────────────────────────────────────────────────────────
@@ -560,7 +583,7 @@ async function executeClientAiRequest(prompt, systemInstruction, mode = 'study')
   // ── OpenRouter ──────────────────────────────────────────────────────────
   if (provider === 'openrouter' && apiKey) {
     updateApiStatusBadge('openrouter');
-    const model = localStorage.getItem('smartlearn_ai_model') || 'meta-llama/llama-3.1-8b-instruct:free';
+    const activeModel = model || localStorage.getItem('smartlearn_ai_model') || 'meta-llama/llama-3.1-8b-instruct:free';
     const messages = [
       { role: 'system', content: sysText },
       ...chatSessionHistory.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
@@ -569,7 +592,7 @@ async function executeClientAiRequest(prompt, systemInstruction, mode = 'study')
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`, 'HTTP-Referer': 'https://smartlearn.edu.gh', 'X-Title': 'SmartLearn AI' },
-      body: JSON.stringify({ model, messages, max_tokens: 2048 })
+      body: JSON.stringify({ model: activeModel, messages, max_tokens: 2048 })
     });
     const data = await response.json();
     if (response.ok && data.choices?.[0]?.message?.content) return data.choices[0].message.content;
@@ -580,7 +603,7 @@ async function executeClientAiRequest(prompt, systemInstruction, mode = 'study')
   // ── Groq (Free tier) ──────────────────────────────────────────────────────
   if (provider === 'groq' && apiKey) {
     updateApiStatusBadge('groq');
-    const groqModel = localStorage.getItem('smartlearn_ai_model') || 'llama-3.1-8b-instant';
+    const activeGroqModel = model || localStorage.getItem('smartlearn_ai_model') || 'llama-3.1-8b-instant';
     const messages = [
       { role: 'system', content: sysText },
       ...chatSessionHistory.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
@@ -589,7 +612,7 @@ async function executeClientAiRequest(prompt, systemInstruction, mode = 'study')
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-      body: JSON.stringify({ model: groqModel, messages, max_tokens: 2048, temperature: 0.7 })
+      body: JSON.stringify({ model: activeGroqModel, messages, max_tokens: 2048, temperature: 0.7 })
     });
     const data = await response.json();
     if (response.ok && data.choices?.[0]?.message?.content) return data.choices[0].message.content;
@@ -1118,6 +1141,7 @@ loadAiProvider = () => {
   if (D.get('ai-model-select'))    D.val('ai-model-select', model);
   onAiProviderChange(); // sync visibility of key/model fields
   updateApiStatusBadge(key ? provider : 'keyless');
+  updateAiSettingsVisibility();
 },
 // Keep old name as alias for backward compat (called from old HTML if any)
 saveGeminiKey = saveAiProvider,
@@ -1136,6 +1160,12 @@ function updateApiStatusBadge(status) {
   badge.innerHTML = `<span style="width:6px;height:6px;background:${cfg.dot};border-radius:50%;display:inline-block;"></span> ${cfg.label}`;
   badge.style.background = cfg.bg;
   badge.style.color = cfg.color;
+}
+function updateAiSettingsVisibility() {
+  const container = D.get('ai-api-settings-container');
+  if (container) {
+    container.style.display = (appState.role === 'admin') ? 'block' : 'none';
+  }
 }
 function toggleTheme() {
   const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.body.setAttribute('data-theme', theme); appState.theme = theme; localStorage.setItem('smartlearn_theme', theme); document.querySelectorAll('.theme-toggle').forEach(btn => btn.innerHTML = theme === 'dark' ? '☀️' : '🌙'); }
