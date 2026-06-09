@@ -1,8 +1,8 @@
 /* SMARTLEARN AI - APPLICATION REACTIVE ENGINE (COMPACTED) */
 const SYSTEM_PERMANENT_CONFIG = {
-  provider: 'openrouter',
-  apiKey: 'sk-or-v1-7e66ff873bdcb265ec831a...', // ⚠️ REPLACE THIS with your full 72-character OpenRouter key!
-  model: 'meta-llama/llama-3.1-8b-instruct:free'
+  provider: 'groq',
+  apiKey: 'YOUR_GROQ_API_KEY_HERE', // ⚠️ REPLACE THIS with your full Groq API key (starts with gsk_)!
+  model: 'llama-3.1-8b-instant'
 };
 const D = {
   get: id => document.getElementById(id),
@@ -231,7 +231,7 @@ async function handlePrototypeSignIn() {
     appState.user = user; enableOfflineDemoIndicator(true); showAuthAlert('Success (Offline Demo)!', true);
     setTimeout(() => { closeAuthModal(); setUserRole(user.role); }, 1000);
   } else {
-    showAuthAlert('Invalid credentials. Try: stu@smartlearn.com / password');
+    showAuthAlert('Invalid credentials.');
   }
 }
 async function handlePrototypeSignUp() {
@@ -522,16 +522,21 @@ async function executeClientAiRequest(prompt, systemInstruction, mode = 'study')
       const data = await res.json(); if (res.ok && data.response) return data.response;
     } catch(err) {}
   }
-  let provider = localStorage.getItem('smartlearn_ai_provider') || 'keyless';
+  let provider = localStorage.getItem('smartlearn_ai_provider') || 'groq';
   let apiKey   = localStorage.getItem('smartlearn_ai_key') || '';
   let model    = localStorage.getItem('smartlearn_ai_model') || '';
 
   // If local storage is empty, fallback to the hardcoded system permanent configuration
   if (!apiKey) {
-    if (SYSTEM_PERMANENT_CONFIG.apiKey && SYSTEM_PERMANENT_CONFIG.apiKey !== 'sk-or-v1-7e66ff873bdcb265ec831a...') {
+    if (SYSTEM_PERMANENT_CONFIG.apiKey && SYSTEM_PERMANENT_CONFIG.apiKey !== 'YOUR_GROQ_API_KEY_HERE') {
       provider = SYSTEM_PERMANENT_CONFIG.provider;
       apiKey   = SYSTEM_PERMANENT_CONFIG.apiKey;
       model    = SYSTEM_PERMANENT_CONFIG.model;
+    } else {
+      // If no valid permanent key is set in the code, fallback to keyless mode for security
+      provider = 'keyless';
+      apiKey   = '';
+      model    = '';
     }
   }
 
@@ -1128,14 +1133,23 @@ onAiProviderChange = () => {
   saveAiProvider();
 },
 loadAiProvider = () => {
-  const provider = localStorage.getItem('smartlearn_ai_provider') || 'keyless';
-  const key      = localStorage.getItem('smartlearn_ai_key') || '';
-  const model    = localStorage.getItem('smartlearn_ai_model') || 'meta-llama/llama-3.1-8b-instruct:free';
+  const provider = localStorage.getItem('smartlearn_ai_provider') || 'groq';
+  let key        = localStorage.getItem('smartlearn_ai_key') || '';
+  const model    = localStorage.getItem('smartlearn_ai_model') || 'llama-3.1-8b-instant';
+  
+  let displayProvider = provider;
+  if (!key) {
+    if (SYSTEM_PERMANENT_CONFIG.apiKey && SYSTEM_PERMANENT_CONFIG.apiKey !== 'YOUR_GROQ_API_KEY_HERE') {
+      key = SYSTEM_PERMANENT_CONFIG.apiKey;
+      displayProvider = SYSTEM_PERMANENT_CONFIG.provider;
+    }
+  }
+
   if (D.get('ai-provider-select')) D.val('ai-provider-select', provider);
   if (D.get('gemini-key-input'))   D.val('gemini-key-input', key);
   if (D.get('ai-model-select'))    D.val('ai-model-select', model);
   onAiProviderChange(); // sync visibility of key/model fields
-  updateApiStatusBadge(key ? provider : 'keyless');
+  updateApiStatusBadge(key ? displayProvider : 'keyless');
   updateAiSettingsVisibility();
 },
 // Keep old name as alias for backward compat (called from old HTML if any)
