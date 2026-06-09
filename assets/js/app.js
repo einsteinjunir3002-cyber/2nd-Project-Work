@@ -526,17 +526,12 @@ async function executeClientAiRequest(prompt, systemInstruction, mode = 'study')
   let apiKey   = localStorage.getItem('smartlearn_ai_key') || '';
   let model    = localStorage.getItem('smartlearn_ai_model') || '';
 
-  // Enforce permanent API config for non-admins (students and lecturers)
-  if (appState.role !== 'admin') {
+  // If local storage is empty, fallback to the hardcoded system permanent configuration
+  if (!apiKey) {
     if (SYSTEM_PERMANENT_CONFIG.apiKey && SYSTEM_PERMANENT_CONFIG.apiKey !== 'sk-or-v1-7e66ff873bdcb265ec831a...') {
       provider = SYSTEM_PERMANENT_CONFIG.provider;
       apiKey   = SYSTEM_PERMANENT_CONFIG.apiKey;
       model    = SYSTEM_PERMANENT_CONFIG.model;
-    } else {
-      // If no valid permanent key is set in the code, fallback to keyless mode for security
-      provider = 'keyless';
-      apiKey   = '';
-      model    = '';
     }
   }
 
